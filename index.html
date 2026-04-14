@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Device Security</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.box {
+    max-width: 300px;
+    width: 100%;
+    height: 600px;
+    background: linear-gradient(145deg, #111, #0a0a0a);
+    border-radius: 44px;
+    padding: 25px;
+    box-shadow: 0 0 30px rgba(0,255,0,0.15);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #2a2a2a;
+    transition: all 0.2s;
+}
+
+.red-flash {
+    animation: redFlash 0.3s ease-in-out 3;
+}
+@keyframes redFlash {
+    0% { background: #0a0a0a; box-shadow: 0 0 0 rgba(255,0,0,0); }
+    50% { background: #3a0000; box-shadow: 0 0 40px red; }
+    100% { background: #0a0a0a; box-shadow: 0 0 0 rgba(255,0,0,0); }
+}
+
+.shake {
+    animation: shakeAnim 0.1s ease-in-out 0s 4;
+}
+@keyframes shakeAnim {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}
+
+.screen {
+    color: white;
+    text-align: center;
+    margin-top: 60px;
+}
+
+h1 {
+    font-size: 20px;
+    margin-bottom: 30px;
+    letter-spacing: 1px;
+}
+
+input {
+    width: 100%;
+    padding: 16px;
+    border-radius: 32px;
+    border: none;
+    background: #1a1a1a;
+    color: white;
+    text-align: center;
+    font-size: 20px;
+    letter-spacing: 4px;
+    margin-bottom: 15px;
+    outline: none;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 32px;
+    border: none;
+    background: #0f0;
+    color: black;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.1s;
+}
+button:active {
+    transform: scale(0.97);
+}
+
+.status {
+    margin-top: 25px;
+    font-size: 13px;
+    color: #6a6a6a;
+}
+
+.progress {
+    width: 100%;
+    height: 4px;
+    background: #1a1a1a;
+    margin-top: 30px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #ff3300;
+    transition: width 0.1s linear;
+}
+
+.warning {
+    position: absolute;
+    bottom: -100%;
+    left: 0;
+    width: 100%;
+    background: #8b0000;
+    color: white;
+    padding: 24px;
+    text-align: center;
+    font-size: 12px;
+    transition: bottom 0.5s ease-out;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+}
+.warning.show {
+    bottom: 0;
+}
+
+.warning strong {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.reset-btn {
+    margin-top: 16px;
+    background: white;
+    color: black;
+    width: auto;
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-size: 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="box" id="phone">
+    <div class="screen">
+        <h1>🔒 Құлыптау экраны</h1>
+        <input type="password" id="pin" placeholder="ПИН-код" maxlength="4" inputmode="numeric">
+        <button id="unlockBtn">Ашу</button>
+        <div class="status" id="status">👆 ПИН-ді енгізіңіз</div>
+        <div class="progress">
+            <div class="progress-bar" id="bar"></div>
+        </div>
+    </div>
+    <div class="warning" id="warning">
+        <strong>💀💀💀 ДЕРЕКТЕРІҢІЗ ҰРЛАНДЫ 💀💀💀</strong>
+        Сіз жалған құлыптау экранына ПИН-кодты енгіздіңіз.<br><br>
+        <strong>Шынайы өмірде:</strong> хакерлер дәл осылай парольдеріңізді ұрлайды.<br><br>
+        🛡 <strong>Қалай қорғану керек?</strong><br>
+        • Тек ресми қосымшаларды пайдаланыңыз<br>
+        • Күмәнді сілтемелерге ешқашан дерек енгізбеңіз<br>
+        • Екі факторлы аутентификация қосыңыз<br>
+        • ПИН-ді тек өз телефоныңызда ғана енгізіңіз<br><br>
+        ⚠️ Бұл – оқу мақсатындағы демо. Ешқандай дерек сақталмайды.
+        <button class="reset-btn" id="resetBtn">🔁 Түсіндім, қайта бастау</button>
+    </div>
+</div>
+
+<script>
+const btn = document.getElementById('unlockBtn');
+const pinInput = document.getElementById('pin');
+const statusText = document.getElementById('status');
+const bar = document.getElementById('bar');
+const phone = document.getElementById('phone');
+const warning = document.getElementById('warning');
+
+function playBeep() {
+    try {
+        const audio = new Audio("https://www.soundjay.com/button/beep-07.mp3");
+        audio.volume = 0.2;
+        audio.play().catch(() => {});
+    } catch(e) {}
+}
+
+btn.onclick = () => {
+    let pin = pinInput.value;
+    
+    if(pin === "" || pin.length < 4) {
+        statusText.innerText = "⚠ 4 таңбалы ПИН енгізіңіз!";
+        phone.classList.add('shake');
+        setTimeout(() => phone.classList.remove('shake'), 400);
+        return;
+    }
+    
+    let progress = 0;
+    statusText.innerText = "🔍 Face ID сканерлеу...";
+    playBeep();
+    
+    let interval = setInterval(() => {
+        progress += 4;
+        bar.style.width = progress + "%";
+        
+        if(progress === 30) {
+            statusText.innerText = "⚠ Рұқсат етілмеген әрекет...";
+            phone.classList.add('red-flash');
+            playBeep();
+        }
+        
+        if(progress === 55) {
+            statusText.innerText = "📡 Деректерді тарату...";
+            phone.classList.add('shake');
+            playBeep();
+        }
+        
+        if(progress === 80) {
+            statusText.innerText = "💀 ПИН ұрланды...";
+            phone.classList.add('red-flash');
+        }
+        
+        if(progress >= 100) {
+            clearInterval(interval);
+            statusText.innerText = "✅ ДЕРЕКТЕР ЖІБЕРІЛДІ";
+            phone.classList.add('shake');
+            
+            setTimeout(() => {
+                warning.classList.add('show');
+                pinInput.disabled = true;
+                btn.disabled = true;
+                btn.style.opacity = "0.5";
+            }, 300);
+        }
+    }, 120);
+};
+
+// Қайта бастау
+document.getElementById('resetBtn').onclick = () => {
+    warning.classList.remove('show');
+    pinInput.disabled = false;
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    pinInput.value = "";
+    statusText.innerText = "👆 ПИН-ді енгізіңіз";
+    bar.style.width = "0%";
+    phone.classList.remove('red-flash', 'shake');
+};
+</script>
+</body>
+</html>
